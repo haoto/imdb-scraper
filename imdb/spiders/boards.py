@@ -52,7 +52,7 @@ class ImdbSpider(Spider):
 		elif title == "Error":
 			print "IMDb dead"
 			return True
-		elif not response.selector.xpath('//a').extract()
+		elif not response.selector.xpath('//a').extract():
 			print "IMDb dead"
 			return True
 		return False
