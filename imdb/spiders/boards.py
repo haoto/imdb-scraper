@@ -20,7 +20,7 @@ class ImdbSpider(Spider):
 		self.maxRetries = 20
 		self.reNums = re.compile('\\d+')
 		# sort by num_votes descending; exclude individual TV episodes
-		self.start_urls = ["http://www.imdb.com/search/title?count=200&release_date=" + release_date + "&num_votes=" + num_votes + "&sort=num_votes,desc&title_type=feature,tv_movie,tv_series,tv_special,mini_series,documentary,game,short,video"]
+		self.start_urls = ["http://www.imdb.com/search/title?count=200&release_date=" + release_date + "&num_votes=" + num_votes + "&sort=release_date,asc&title_type=feature,tv_movie,tv_series,tv_special,mini_series,documentary,game,short,video"]
 
 	def start_requests(self):
 		for u in self.start_urls:
