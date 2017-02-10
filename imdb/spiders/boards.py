@@ -49,6 +49,12 @@ class ImdbSpider(Spider):
 		if title == "IMDb - D'oh":
 			print "IMDb dead"
 			return True
+		elif title == "Error":
+			print "IMDb dead"
+			return True
+		elif not response.selector.xpath('//a').extract()
+			print "IMDb dead"
+			return True
 		return False
 
 	def parseThread(self, response):
