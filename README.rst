@@ -7,7 +7,7 @@ IMDb message board scraper written for scrapy. Use this to back up the entire si
 Before you start, there are other efforts too
 ---------------------------------------------
 The Archive Team is one of the groups actively backing up the message boards right now. You can see their progress and help out `here`__.
-.. __ http://tracker.archiveteam.org/imdb/
+.. __: http://tracker.archiveteam.org/imdb/
 
 Usage
 -----
@@ -31,7 +31,7 @@ num_votes
 	The number of votes received for a movie. Specifying "100,200" means from 100 to 200 votes. You can leave either of the bounds emtpy. Specifying "100" means exactly 100 votes. Defaults to "100," meaning at least 100 votes.
 
 You can test your search criteria `here`__. Note that the title search page the spider relies on does not show results beyond the 10,000th one. So you need to set search arguments in a way that no more than 10,000 titles are found.
-.. __ http://www.imdb.com/search/title
+.. __: http://www.imdb.com/search/title
 
 Output item format
 ------------------
