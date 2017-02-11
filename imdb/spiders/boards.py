@@ -2,6 +2,7 @@ from scrapy.spiders import Spider
 from scrapy.http import Request
 from scrapy.spidermiddlewares.httperror import HttpError
 from imdb.items import ThreadItem
+import time
 import re
 import zlib
 
@@ -13,7 +14,7 @@ class ImdbSpider(Spider):
 	def __init__(self, release_date='', num_votes='100,', *args, **kwargs):
 		super(ImdbSpider, self).__init__(*args, **kwargs)
 		self.retries = 0
-		self.maxRetries = 20
+		self.maxRetries = 100
 		self.reNums = re.compile('\\d+')
 		# sort by release_date ascending; exclude individual TV episodes
 		self.start_urls = ["http://www.imdb.com/search/title?count=200&release_date=" + release_date + "&num_votes=" + num_votes + "&sort=release_date,asc&title_type=feature,tv_movie,tv_series,tv_special,mini_series,documentary,game,short,video"]
@@ -31,8 +32,10 @@ class ImdbSpider(Spider):
 					print "Failed too many times. Giving up."
 					self.retries = 0
 				else:
-					print "Server error."
 					url = response.url
+					throttleDelay = 0.5 * self.retries
+					print "Server error. Sleeping for " + str(throttleDelay) + " before next retry. url: " + url
+					time.sleep(throttleDelay)
 					yield Request(url, callback = self.parse, errback = self.errback, dont_filter=True)
 			else:
 				print 'ERROR: HTTP' + str(response.status)
