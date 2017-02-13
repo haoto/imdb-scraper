@@ -14,7 +14,7 @@ class ImdbSpider(Spider):
 	def __init__(self, release_date='', num_votes='100,', *args, **kwargs):
 		super(ImdbSpider, self).__init__(*args, **kwargs)
 		self.retries = 0
-		self.maxRetries = 100
+		self.maxRetries = 1000
 		self.reNums = re.compile('\\d+')
 		# sort by release_date ascending; exclude individual TV episodes
 		self.start_urls = ["http://www.imdb.com/search/title?count=200&release_date=" + release_date + "&num_votes=" + num_votes + "&sort=release_date,asc&title_type=feature,tv_movie,tv_series,tv_special,mini_series,documentary,game,short,video"]
@@ -76,6 +76,8 @@ class ImdbSpider(Spider):
 		# find next page
 		pages = response.selector.xpath('//a[contains(@href, "?p=")]/@href').extract()
 		for p in pages:
+			if p.find(item['boardId']) == -1 or p.find(item['id']) == -1: # not this thread!
+				continue
 			if p.rfind('last') != -1:
 				continue
 			pid = self.reNums.search(p[p.rfind('?p=')+3:])
@@ -124,6 +126,8 @@ class ImdbSpider(Spider):
 			yield Request(response.url, callback = self.parse, errback = self.errback,
 					dont_filter=True)
 			return
+		else: # good response
+			self.retries = 0
 		if response.url.find('/board/thread/') != -1:
 			for r in self.parseThread(response):
 				yield r
