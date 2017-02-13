@@ -21,9 +21,9 @@ class ImdbSpider(Spider):
 
 	def start_requests(self):
 		for u in self.start_urls:
-			yield Request(u, callback = self.parse, errback = self.errback)
+			yield Request(u, callback = self.parse)
 
-	def errback(self, failure):
+	def _errback(self, failure):
 		if failure.check(HttpError):
 			response = failure.value.response
 			if response.status >= 500: # server error
@@ -36,7 +36,7 @@ class ImdbSpider(Spider):
 					throttleDelay = 0.5 * self.retries
 					print "Server error. Sleeping for " + str(throttleDelay) + " before next retry. url: " + url
 					time.sleep(throttleDelay)
-					yield Request(url, callback = self.parse, errback = self.errback, dont_filter=True)
+					yield Request(url, callback = self.parse, errback = self._errback, dont_filter=True)
 			else:
 				print 'ERROR: HTTP' + str(response.status)
 
@@ -86,7 +86,7 @@ class ImdbSpider(Spider):
 				if page > curpage:
 					# found next page
 					url = 'http://www.imdb.com' + p
-					yield Request(url, callback = self.parse, errback = self.errback)
+					yield Request(url, callback = self.parseThread)
 					break
 
 	def parseBoard(self, response):
@@ -108,7 +108,7 @@ class ImdbSpider(Spider):
 			if not t in threadsParsed:
 				threadsParsed.append(t)
 				url = 'http://www.imdb.com' + t
-				yield Request(url, callback = self.parse, errback = self.errback)
+				yield Request(url, callback = self.parseThread)
 		# find next page
 		pages = response.selector.xpath('//a[contains(@href, "/?p=")]/@href').extract()
 		for p in pages:
@@ -118,23 +118,15 @@ class ImdbSpider(Spider):
 				if page > curpage:
 					# found next page
 					url = 'http://www.imdb.com' + p
-					yield Request(url, callback = self.parse, errback = self.errback)
+					yield Request(url, callback = self.parseBoard)
 					break
 
 	def parse(self, response):
 		if self.isImdbDead(response):
-			yield Request(response.url, callback = self.parse, errback = self.errback,
+			yield Request(response.url, callback = self.parse,
 					dont_filter=True)
 			return
-		else: # good response
-			self.retries = 0
-		if response.url.find('/board/thread/') != -1:
-			for r in self.parseThread(response):
-				yield r
-		elif response.url.find('/board/') != -1:
-			for r in self.parseBoard(response):
-				yield r
-		elif response.url.find('/search/title?') != -1:
+		if response.url.find('/search/title?') != -1:
 			titlesToCrawl = []
 			titles = response.selector.xpath('//a[contains(@href, "/title/")]/@href').extract()
 			for tt in titles:
@@ -144,13 +136,13 @@ class ImdbSpider(Spider):
 
 			for tt in titlesToCrawl:
 				url = 'http://www.imdb.com/title/' + tt + '/board/'
-				yield Request(url, callback = self.parse, errback = self.errback)
+				yield Request(url, callback = self.parseBoard)
 
 			# next page of titles
 			nextPage = response.selector.xpath('//a[contains(@class, "lister-page-next")]/@href').extract()
 			if len(nextPage) == 2: # two of the same link
 				url = 'http://www.imdb.com/search/title' + nextPage[0]
-				yield Request(url, callback = self.parse, errback = self.errback)
+				yield Request(url, callback = self.parse)
 		else:
 			print 'DERP?'
 
